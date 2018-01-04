@@ -1,0 +1,974 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>YARNRunner.java · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    
+    <link rel="prev" href="NativeIO.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../../">
+            
+                <a href="../../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+        
+        <li class="header">BigData</li>
+        
+        
+    
+        <li class="chapter " data-level="2.1" >
+            
+                <span>
+            
+                    
+                    Hadoop
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="2.1.1" >
+            
+                <span>
+            
+                    
+                    MapReduce
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="2.1.1.1" data-path="run_local.html">
+            
+                <a href="run_local.html">
+            
+                    
+                    Windows本地运行MapReduce
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.1.1.2" data-path="NativeIO.html">
+            
+                <a href="NativeIO.html">
+            
+                    
+                    NativeIO.java
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="2.1.1.3" data-path="YARNRunner.html">
+            
+                <a href="YARNRunner.html">
+            
+                    
+                    YARNRunner.java
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="2.1.2" >
+            
+                <span>
+            
+                    
+                    Spark
+            
+                </span>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../../.." >YARNRunner.java</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <pre><code class="lang-java"><span class="hljs-comment">/**
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* &quot;License&quot;); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+  *
+* http://www.apache.org/licenses/LICENSE-2.0
+  *
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+  */</span>
+
+<span class="hljs-keyword">package</span> org.apache.hadoop.mapred;
+
+<span class="hljs-keyword">import</span> com.google.common.annotations.VisibleForTesting;
+
+<span class="hljs-keyword">import</span> org.apache.commons.logging.Log;
+<span class="hljs-keyword">import</span> org.apache.commons.logging.LogFactory;
+<span class="hljs-keyword">import</span> org.apache.hadoop.classification.InterfaceAudience.Private;
+<span class="hljs-keyword">import</span> org.apache.hadoop.conf.Configuration;
+<span class="hljs-keyword">import</span> org.apache.hadoop.fs.FileContext;
+<span class="hljs-keyword">import</span> org.apache.hadoop.fs.FileStatus;
+<span class="hljs-keyword">import</span> org.apache.hadoop.fs.Path;
+<span class="hljs-keyword">import</span> org.apache.hadoop.fs.UnsupportedFileSystemException;
+<span class="hljs-keyword">import</span> org.apache.hadoop.io.DataOutputBuffer;
+<span class="hljs-keyword">import</span> org.apache.hadoop.io.Text;
+<span class="hljs-keyword">import</span> org.apache.hadoop.ipc.ProtocolSignature;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapred.ClientCache;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapred.JobConf;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapred.Master;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapred.ResourceMgrDelegate;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.Cluster.JobTrackerStatus;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.ClusterMetrics;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.Counters;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.JobID;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.JobStatus;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.MRJobConfig;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.QueueAclsInfo;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.QueueInfo;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.TaskAttemptID;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.TaskCompletionEvent;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.TaskReport;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.TaskTrackerInfo;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.TaskType;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.TypeConverter;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.protocol.ClientProtocol;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.security.token.delegation.DelegationTokenIdentifier;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.v2.LogParams;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.v2.api.MRClientProtocol;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenRequest;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.v2.jobhistory.JobHistoryUtils;
+<span class="hljs-keyword">import</span> org.apache.hadoop.mapreduce.v2.util.MRApps;
+<span class="hljs-keyword">import</span> org.apache.hadoop.security.Credentials;
+<span class="hljs-keyword">import</span> org.apache.hadoop.security.SecurityUtil;
+<span class="hljs-keyword">import</span> org.apache.hadoop.security.UserGroupInformation;
+<span class="hljs-keyword">import</span> org.apache.hadoop.security.authorize.AccessControlList;
+<span class="hljs-keyword">import</span> org.apache.hadoop.security.token.Token;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.ApplicationConstants;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.ApplicationAccessType;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.ApplicationId;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.ApplicationReport;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.LocalResource;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.LocalResourceType;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.LocalResourceVisibility;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.Resource;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.URL;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.api.records.YarnApplicationState;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.conf.YarnConfiguration;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.exceptions.YarnException;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.factories.RecordFactory;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.security.client.RMDelegationTokenSelector;
+<span class="hljs-keyword">import</span> org.apache.hadoop.yarn.util.ConverterUtils;
+
+<span class="hljs-keyword">import</span> java.io.IOException;
+<span class="hljs-keyword">import</span> java.nio.ByteBuffer;
+<span class="hljs-keyword">import</span> java.util.ArrayList;
+<span class="hljs-keyword">import</span> java.util.Collection;
+<span class="hljs-keyword">import</span> java.util.HashMap;
+<span class="hljs-keyword">import</span> java.util.HashSet;
+<span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.Vector;
+
+<span class="hljs-comment">/**
+ * This class enables the current JobClient (0.22 hadoop) to run on YARN.
+    */</span>
+    <span class="hljs-meta">@SuppressWarnings</span>(<span class="hljs-string">&quot;unchecked&quot;</span>)
+    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">YARNRunner</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ClientProtocol</span> </span>{
+
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Log LOG = LogFactory.getLog(YARNRunner.class);
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(<span class="hljs-keyword">null</span>);
+  <span class="hljs-keyword">private</span> ResourceMgrDelegate resMgrDelegate;
+  <span class="hljs-keyword">private</span> ClientCache clientCache;
+  <span class="hljs-keyword">private</span> Configuration conf;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> FileContext defaultFileContext;
+
+  <span class="hljs-comment">/**
+   * Yarn runner incapsulates the client interface of
+   * yarn
+   * <span class="hljs-doctag">@param</span> conf the configuration object for the client
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">YARNRunner</span><span class="hljs-params">(Configuration conf)</span> </span>{
+           <span class="hljs-keyword">this</span>(conf, <span class="hljs-keyword">new</span> ResourceMgrDelegate(<span class="hljs-keyword">new</span> YarnConfiguration(conf)));
+          }
+
+  <span class="hljs-comment">/**
+   * Similar to {<span class="hljs-doctag">@link</span> #YARNRunner(Configuration)} but allowing injecting
+   * {<span class="hljs-doctag">@link</span> ResourceMgrDelegate}. Enables mocking and testing.
+   * <span class="hljs-doctag">@param</span> conf the configuration object for the client
+   * <span class="hljs-doctag">@param</span> resMgrDelegate the resourcemanager client handle.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">YARNRunner</span><span class="hljs-params">(Configuration conf, ResourceMgrDelegate resMgrDelegate)</span> </span>{
+           <span class="hljs-keyword">this</span>(conf, resMgrDelegate, <span class="hljs-keyword">new</span> ClientCache(conf, resMgrDelegate));
+          }
+
+  <span class="hljs-comment">/**
+   * Similar to {<span class="hljs-doctag">@link</span> YARNRunner#YARNRunner(Configuration, ResourceMgrDelegate)}
+   * but allowing injecting {<span class="hljs-doctag">@link</span> ClientCache}. Enable mocking and testing.
+   * <span class="hljs-doctag">@param</span> conf the configuration object
+   * <span class="hljs-doctag">@param</span> resMgrDelegate the resource manager delegate
+   * <span class="hljs-doctag">@param</span> clientCache the client cache object.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">YARNRunner</span><span class="hljs-params">(Configuration conf, ResourceMgrDelegate resMgrDelegate,
+      ClientCache clientCache)</span> </span>{
+    <span class="hljs-keyword">this</span>.conf = conf;
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">this</span>.resMgrDelegate = resMgrDelegate;
+      <span class="hljs-keyword">this</span>.clientCache = clientCache;
+      <span class="hljs-keyword">this</span>.defaultFileContext = FileContext.getFileContext(<span class="hljs-keyword">this</span>.conf);
+    } <span class="hljs-keyword">catch</span> (UnsupportedFileSystemException ufe) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(<span class="hljs-string">&quot;Error in instantiating YarnClient&quot;</span>, ufe);
+    }
+  }
+
+  <span class="hljs-meta">@Private</span>
+  <span class="hljs-comment">/**
+   * Used for testing mostly.
+   * <span class="hljs-doctag">@param</span> resMgrDelegate the resource manager delegate to set to.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setResourceMgrDelegate</span><span class="hljs-params">(ResourceMgrDelegate resMgrDelegate)</span> </span>{
+    <span class="hljs-keyword">this</span>.resMgrDelegate = resMgrDelegate;
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">cancelDelegationToken</span><span class="hljs-params">(Token&lt;DelegationTokenIdentifier&gt; arg0)</span>
+      <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnsupportedOperationException(<span class="hljs-string">&quot;Use Token.renew instead&quot;</span>);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> TaskTrackerInfo[] getActiveTrackers() <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException {
+    <span class="hljs-keyword">return</span> resMgrDelegate.getActiveTrackers();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> JobStatus[] getAllJobs() <span class="hljs-keyword">throws</span> IOException, InterruptedException {
+    <span class="hljs-keyword">return</span> resMgrDelegate.getAllJobs();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> TaskTrackerInfo[] getBlacklistedTrackers() <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException {
+    <span class="hljs-keyword">return</span> resMgrDelegate.getBlacklistedTrackers();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> ClusterMetrics <span class="hljs-title">getClusterMetrics</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException </span>{
+    <span class="hljs-keyword">return</span> resMgrDelegate.getClusterMetrics();
+  }
+
+  <span class="hljs-meta">@VisibleForTesting</span>
+  <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">addHistoryToken</span><span class="hljs-params">(Credentials ts)</span> <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-comment">/* check if we have a hsproxy, if not, no need */</span>
+    MRClientProtocol hsProxy = clientCache.getInitializedHSProxy();
+    <span class="hljs-keyword">if</span> (UserGroupInformation.isSecurityEnabled() &amp;&amp; (hsProxy != <span class="hljs-keyword">null</span>)) {
+      <span class="hljs-comment">/*
+       * note that get delegation token was called. Again this is hack for oozie
+       * to make sure we add history server delegation tokens to the credentials
+       */</span>
+      RMDelegationTokenSelector tokenSelector = <span class="hljs-keyword">new</span> RMDelegationTokenSelector();
+      Text service = resMgrDelegate.getRMDelegationTokenService();
+      <span class="hljs-keyword">if</span> (tokenSelector.selectToken(service, ts.getAllTokens()) != <span class="hljs-keyword">null</span>) {
+        Text hsService = SecurityUtil.buildTokenService(hsProxy
+            .getConnectAddress());
+        <span class="hljs-keyword">if</span> (ts.getToken(hsService) == <span class="hljs-keyword">null</span>) {
+          ts.addToken(hsService, getDelegationTokenFromHS(hsProxy));
+        }
+      }
+    }
+  }
+
+  <span class="hljs-meta">@VisibleForTesting</span>
+  Token&lt;?&gt; getDelegationTokenFromHS(MRClientProtocol hsProxy)
+      <span class="hljs-keyword">throws</span> IOException, InterruptedException {
+    GetDelegationTokenRequest request = recordFactory
+      .newRecordInstance(GetDelegationTokenRequest.class);
+    request.setRenewer(Master.getMasterPrincipal(conf));
+    org.apache.hadoop.yarn.api.records.Token mrDelegationToken;
+    mrDelegationToken = hsProxy.getDelegationToken(request)
+        .getDelegationToken();
+    <span class="hljs-keyword">return</span> ConverterUtils.convertFromYarn(mrDelegationToken,
+        hsProxy.getConnectAddress());
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> Token&lt;DelegationTokenIdentifier&gt; <span class="hljs-title">getDelegationToken</span><span class="hljs-params">(Text renewer)</span>
+      <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-comment">// The token is only used for serialization. So the type information</span>
+    <span class="hljs-comment">// mismatch should be fine.</span>
+    <span class="hljs-keyword">return</span> resMgrDelegate.getDelegationToken(renewer);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getFilesystemName</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-keyword">return</span> resMgrDelegate.getFilesystemName();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> JobID <span class="hljs-title">getNewJobID</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-keyword">return</span> resMgrDelegate.getNewJobID();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> QueueInfo <span class="hljs-title">getQueue</span><span class="hljs-params">(String queueName)</span> <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException </span>{
+    <span class="hljs-keyword">return</span> resMgrDelegate.getQueue(queueName);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> QueueAclsInfo[] getQueueAclsForCurrentUser() <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException {
+    <span class="hljs-keyword">return</span> resMgrDelegate.getQueueAclsForCurrentUser();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> QueueInfo[] getQueues() <span class="hljs-keyword">throws</span> IOException, InterruptedException {
+    <span class="hljs-keyword">return</span> resMgrDelegate.getQueues();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> QueueInfo[] getRootQueues() <span class="hljs-keyword">throws</span> IOException, InterruptedException {
+    <span class="hljs-keyword">return</span> resMgrDelegate.getRootQueues();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> QueueInfo[] getChildQueues(String parent) <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException {
+    <span class="hljs-keyword">return</span> resMgrDelegate.getChildQueues(parent);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getStagingAreaDir</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-keyword">return</span> resMgrDelegate.getStagingAreaDir();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getSystemDir</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-keyword">return</span> resMgrDelegate.getSystemDir();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getTaskTrackerExpiryInterval</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException </span>{
+    <span class="hljs-keyword">return</span> resMgrDelegate.getTaskTrackerExpiryInterval();
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> JobStatus <span class="hljs-title">submitJob</span><span class="hljs-params">(JobID jobId, String jobSubmitDir, Credentials ts)</span>
+  <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+
+    addHistoryToken(ts);
+
+    <span class="hljs-comment">// Construct necessary information to start the MR AM</span>
+    ApplicationSubmissionContext appContext =
+      createApplicationSubmissionContext(conf, jobSubmitDir, ts);
+
+    <span class="hljs-comment">// Submit to ResourceManager</span>
+    <span class="hljs-keyword">try</span> {
+      ApplicationId applicationId =
+          resMgrDelegate.submitApplication(appContext);
+
+      ApplicationReport appMaster = resMgrDelegate
+          .getApplicationReport(applicationId);
+      String diagnostics =
+          (appMaster == <span class="hljs-keyword">null</span> ?
+              <span class="hljs-string">&quot;application report is null&quot;</span> : appMaster.getDiagnostics());
+      <span class="hljs-keyword">if</span> (appMaster == <span class="hljs-keyword">null</span>
+          || appMaster.getYarnApplicationState() == YarnApplicationState.FAILED
+          || appMaster.getYarnApplicationState() == YarnApplicationState.KILLED) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IOException(<span class="hljs-string">&quot;Failed to run job : &quot;</span> +
+            diagnostics);
+      }
+      <span class="hljs-keyword">return</span> clientCache.getClient(jobId).getJobStatus(jobId);
+    } <span class="hljs-keyword">catch</span> (YarnException e) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IOException(e);
+    }
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">private</span> LocalResource <span class="hljs-title">createApplicationResource</span><span class="hljs-params">(FileContext fs, Path p, LocalResourceType type)</span>
+      <span class="hljs-keyword">throws</span> IOException </span>{
+    LocalResource rsrc = recordFactory.newRecordInstance(LocalResource.class);
+    FileStatus rsrcStat = fs.getFileStatus(p);
+    rsrc.setResource(ConverterUtils.getYarnUrlFromPath(fs
+        .getDefaultFileSystem().resolvePath(rsrcStat.getPath())));
+    rsrc.setSize(rsrcStat.getLen());
+    rsrc.setTimestamp(rsrcStat.getModificationTime());
+    rsrc.setType(type);
+    rsrc.setVisibility(LocalResourceVisibility.APPLICATION);
+    <span class="hljs-keyword">return</span> rsrc;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> ApplicationSubmissionContext <span class="hljs-title">createApplicationSubmissionContext</span><span class="hljs-params">(
+      Configuration jobConf,
+      String jobSubmitDir, Credentials ts)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+    ApplicationId applicationId = resMgrDelegate.getApplicationId();
+
+    <span class="hljs-comment">// Setup resource requirements</span>
+    Resource capability = recordFactory.newRecordInstance(Resource.class);
+    capability.setMemory(
+        conf.getInt(
+            MRJobConfig.MR_AM_VMEM_MB, MRJobConfig.DEFAULT_MR_AM_VMEM_MB
+            )
+        );
+    capability.setVirtualCores(
+        conf.getInt(
+            MRJobConfig.MR_AM_CPU_VCORES, MRJobConfig.DEFAULT_MR_AM_CPU_VCORES
+            )
+        );
+    LOG.debug(<span class="hljs-string">&quot;AppMaster capability = &quot;</span> + capability);
+
+    <span class="hljs-comment">// Setup LocalResources</span>
+    Map&lt;String, LocalResource&gt; localResources =
+        <span class="hljs-keyword">new</span> HashMap&lt;String, LocalResource&gt;();
+
+    Path jobConfPath = <span class="hljs-keyword">new</span> Path(jobSubmitDir, MRJobConfig.JOB_CONF_FILE);
+
+    URL yarnUrlForJobSubmitDir = ConverterUtils
+        .getYarnUrlFromPath(defaultFileContext.getDefaultFileSystem()
+            .resolvePath(
+                defaultFileContext.makeQualified(<span class="hljs-keyword">new</span> Path(jobSubmitDir))));
+    LOG.debug(<span class="hljs-string">&quot;Creating setup context, jobSubmitDir url is &quot;</span>
+        + yarnUrlForJobSubmitDir);
+
+    localResources.put(MRJobConfig.JOB_CONF_FILE,
+        createApplicationResource(defaultFileContext,
+            jobConfPath, LocalResourceType.FILE));
+    <span class="hljs-keyword">if</span> (jobConf.get(MRJobConfig.JAR) != <span class="hljs-keyword">null</span>) {
+      Path jobJarPath = <span class="hljs-keyword">new</span> Path(jobConf.get(MRJobConfig.JAR));
+      LocalResource rc = createApplicationResource(defaultFileContext,
+          jobJarPath,
+          LocalResourceType.PATTERN);
+      String pattern = conf.getPattern(MRJobConfig.JAR_UNPACK_PATTERN,
+          JobConf.UNPACK_JAR_PATTERN_DEFAULT).pattern();
+      rc.setPattern(pattern);
+      localResources.put(MRJobConfig.JOB_JAR, rc);
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-comment">// Job jar may be null. For e.g, for pipes, the job jar is the hadoop</span>
+      <span class="hljs-comment">// mapreduce jar itself which is already on the classpath.</span>
+      LOG.info(<span class="hljs-string">&quot;Job jar is not present. &quot;</span>
+          + <span class="hljs-string">&quot;Not adding any jar to the list of resources.&quot;</span>);
+    }
+
+    <span class="hljs-comment">// TODO gross hack</span>
+    <span class="hljs-keyword">for</span> (String s : <span class="hljs-keyword">new</span> String[] {
+        MRJobConfig.JOB_SPLIT,
+        MRJobConfig.JOB_SPLIT_METAINFO }) {
+      localResources.put(
+          MRJobConfig.JOB_SUBMIT_DIR + <span class="hljs-string">&quot;/&quot;</span> + s,
+          createApplicationResource(defaultFileContext,
+              <span class="hljs-keyword">new</span> Path(jobSubmitDir, s), LocalResourceType.FILE));
+    }
+
+    <span class="hljs-comment">// Setup security tokens</span>
+    DataOutputBuffer dob = <span class="hljs-keyword">new</span> DataOutputBuffer();
+    ts.writeTokenStorageToStream(dob);
+    ByteBuffer securityTokens  = ByteBuffer.wrap(dob.getData(), <span class="hljs-number">0</span>, dob.getLength());
+
+    <span class="hljs-comment">// Setup the command to run the AM</span>
+    List&lt;String&gt; vargs = <span class="hljs-keyword">new</span> ArrayList&lt;String&gt;(<span class="hljs-number">8</span>);
+    <span class="hljs-comment">/*vargs.add(MRApps.crossPlatformifyMREnv(jobConf, Environment.JAVA_HOME)
+        + &quot;/bin/java&quot;);*/</span>
+    vargs.add(<span class="hljs-string">&quot;$JAVA_HOME/bin/java&quot;</span>);
+    <span class="hljs-comment">// <span class="hljs-doctag">TODO:</span> why do we use &apos;conf&apos; some places and &apos;jobConf&apos; others?</span>
+    <span class="hljs-keyword">long</span> logSize = jobConf.getLong(MRJobConfig.MR_AM_LOG_KB,
+        MRJobConfig.DEFAULT_MR_AM_LOG_KB) &lt;&lt; <span class="hljs-number">10</span>;
+    String logLevel = jobConf.get(
+        MRJobConfig.MR_AM_LOG_LEVEL, MRJobConfig.DEFAULT_MR_AM_LOG_LEVEL);
+    <span class="hljs-keyword">int</span> numBackups = jobConf.getInt(MRJobConfig.MR_AM_LOG_BACKUPS,
+        MRJobConfig.DEFAULT_MR_AM_LOG_BACKUPS);
+    MRApps.addLog4jSystemProperties(logLevel, logSize, numBackups, vargs);
+
+    <span class="hljs-comment">// Check for Java Lib Path usage in MAP and REDUCE configs</span>
+    warnForJavaLibPath(conf.get(MRJobConfig.MAP_JAVA_OPTS,<span class="hljs-string">&quot;&quot;</span>), <span class="hljs-string">&quot;map&quot;</span>,
+        MRJobConfig.MAP_JAVA_OPTS, MRJobConfig.MAP_ENV);
+    warnForJavaLibPath(conf.get(MRJobConfig.MAPRED_MAP_ADMIN_JAVA_OPTS,<span class="hljs-string">&quot;&quot;</span>), <span class="hljs-string">&quot;map&quot;</span>,
+        MRJobConfig.MAPRED_MAP_ADMIN_JAVA_OPTS, MRJobConfig.MAPRED_ADMIN_USER_ENV);
+    warnForJavaLibPath(conf.get(MRJobConfig.REDUCE_JAVA_OPTS,<span class="hljs-string">&quot;&quot;</span>), <span class="hljs-string">&quot;reduce&quot;</span>,
+        MRJobConfig.REDUCE_JAVA_OPTS, MRJobConfig.REDUCE_ENV);
+    warnForJavaLibPath(conf.get(MRJobConfig.MAPRED_REDUCE_ADMIN_JAVA_OPTS,<span class="hljs-string">&quot;&quot;</span>), <span class="hljs-string">&quot;reduce&quot;</span>,
+        MRJobConfig.MAPRED_REDUCE_ADMIN_JAVA_OPTS, MRJobConfig.MAPRED_ADMIN_USER_ENV);
+
+    <span class="hljs-comment">// Add AM admin command opts before user command opts</span>
+    <span class="hljs-comment">// so that it can be overridden by user</span>
+    String mrAppMasterAdminOptions = conf.get(MRJobConfig.MR_AM_ADMIN_COMMAND_OPTS,
+        MRJobConfig.DEFAULT_MR_AM_ADMIN_COMMAND_OPTS);
+    warnForJavaLibPath(mrAppMasterAdminOptions, <span class="hljs-string">&quot;app master&quot;</span>,
+        MRJobConfig.MR_AM_ADMIN_COMMAND_OPTS, MRJobConfig.MR_AM_ADMIN_USER_ENV);
+    vargs.add(mrAppMasterAdminOptions);
+
+    <span class="hljs-comment">// Add AM user command opts</span>
+    String mrAppMasterUserOptions = conf.get(MRJobConfig.MR_AM_COMMAND_OPTS,
+        MRJobConfig.DEFAULT_MR_AM_COMMAND_OPTS);
+    warnForJavaLibPath(mrAppMasterUserOptions, <span class="hljs-string">&quot;app master&quot;</span>,
+        MRJobConfig.MR_AM_COMMAND_OPTS, MRJobConfig.MR_AM_ENV);
+    vargs.add(mrAppMasterUserOptions);
+
+    vargs.add(MRJobConfig.APPLICATION_MASTER_CLASS);
+    vargs.add(<span class="hljs-string">&quot;1&gt;&quot;</span> + ApplicationConstants.LOG_DIR_EXPANSION_VAR +
+        Path.SEPARATOR + ApplicationConstants.STDOUT);
+    vargs.add(<span class="hljs-string">&quot;2&gt;&quot;</span> + ApplicationConstants.LOG_DIR_EXPANSION_VAR +
+        Path.SEPARATOR + ApplicationConstants.STDERR);
+
+
+    Vector&lt;String&gt; vargsFinal = <span class="hljs-keyword">new</span> Vector&lt;String&gt;(<span class="hljs-number">8</span>);
+    <span class="hljs-comment">// Final command</span>
+    StringBuilder mergedCommand = <span class="hljs-keyword">new</span> StringBuilder();
+    <span class="hljs-keyword">for</span> (CharSequence str : vargs) {
+      mergedCommand.append(str).append(<span class="hljs-string">&quot; &quot;</span>);
+    }
+    vargsFinal.add(mergedCommand.toString());
+
+    LOG.debug(<span class="hljs-string">&quot;Command to launch container for ApplicationMaster is : &quot;</span>
+        + mergedCommand);
+
+    <span class="hljs-comment">// Setup the CLASSPATH in environment</span>
+    <span class="hljs-comment">// i.e. add { Hadoop jars, job jar, CWD } to classpath.</span>
+    Map&lt;String, String&gt; environment = <span class="hljs-keyword">new</span> HashMap&lt;String, String&gt;();
+    MRApps.setClasspath(environment, conf);
+
+    <span class="hljs-comment">// Setup the environment variables for Admin first</span>
+    MRApps.setEnvFromInputString(environment,
+        conf.get(MRJobConfig.MR_AM_ADMIN_USER_ENV), conf);
+    <span class="hljs-comment">// Setup the environment variables (LD_LIBRARY_PATH, etc)</span>
+    MRApps.setEnvFromInputString(environment,
+        conf.get(MRJobConfig.MR_AM_ENV), conf);
+
+    <span class="hljs-comment">// Parse distributed cache</span>
+    MRApps.setupDistributedCache(jobConf, localResources);
+
+    Map&lt;ApplicationAccessType, String&gt; acls
+        = <span class="hljs-keyword">new</span> HashMap&lt;ApplicationAccessType, String&gt;(<span class="hljs-number">2</span>);
+    acls.put(ApplicationAccessType.VIEW_APP, jobConf.get(
+        MRJobConfig.JOB_ACL_VIEW_JOB, MRJobConfig.DEFAULT_JOB_ACL_VIEW_JOB));
+    acls.put(ApplicationAccessType.MODIFY_APP, jobConf.get(
+        MRJobConfig.JOB_ACL_MODIFY_JOB,
+        MRJobConfig.DEFAULT_JOB_ACL_MODIFY_JOB));
+    replaceEnvironment(environment);
+
+    <span class="hljs-comment">// Setup ContainerLaunchContext for AM container</span>
+    ContainerLaunchContext amContainer =
+        ContainerLaunchContext.newInstance(localResources, environment,
+          vargsFinal, <span class="hljs-keyword">null</span>, securityTokens, acls);
+
+    Collection&lt;String&gt; tagsFromConf =
+        jobConf.getTrimmedStringCollection(MRJobConfig.JOB_TAGS);
+
+    <span class="hljs-comment">// Set up the ApplicationSubmissionContext</span>
+    ApplicationSubmissionContext appContext =
+        recordFactory.newRecordInstance(ApplicationSubmissionContext.class);
+    appContext.setApplicationId(applicationId);                <span class="hljs-comment">// ApplicationId</span>
+    appContext.setQueue(                                       <span class="hljs-comment">// Queue name</span>
+        jobConf.get(MRJobConfig.QUEUE_NAME,
+        YarnConfiguration.DEFAULT_QUEUE_NAME));
+    appContext.setApplicationName(                             <span class="hljs-comment">// Job name</span>
+        jobConf.get(MRJobConfig.JOB_NAME,
+        YarnConfiguration.DEFAULT_APPLICATION_NAME));
+    appContext.setCancelTokensWhenComplete(
+        conf.getBoolean(MRJobConfig.JOB_CANCEL_DELEGATION_TOKEN, <span class="hljs-keyword">true</span>));
+    appContext.setAMContainerSpec(amContainer);         <span class="hljs-comment">// AM Container</span>
+    appContext.setMaxAppAttempts(
+        conf.getInt(MRJobConfig.MR_AM_MAX_ATTEMPTS,
+            MRJobConfig.DEFAULT_MR_AM_MAX_ATTEMPTS));
+    appContext.setResource(capability);
+    appContext.setApplicationType(MRJobConfig.MR_APPLICATION_TYPE);
+    <span class="hljs-keyword">if</span> (tagsFromConf != <span class="hljs-keyword">null</span> &amp;&amp; !tagsFromConf.isEmpty()) {
+      appContext.setApplicationTags(<span class="hljs-keyword">new</span> HashSet&lt;String&gt;(tagsFromConf));
+    }
+    <span class="hljs-keyword">return</span> appContext;
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setJobPriority</span><span class="hljs-params">(JobID arg0, String arg1)</span> <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException </span>{
+    resMgrDelegate.setJobPriority(arg0, arg1);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getProtocolVersion</span><span class="hljs-params">(String arg0, <span class="hljs-keyword">long</span> arg1)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+    <span class="hljs-keyword">return</span> resMgrDelegate.getProtocolVersion(arg0, arg1);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">renewDelegationToken</span><span class="hljs-params">(Token&lt;DelegationTokenIdentifier&gt; arg0)</span>
+      <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> UnsupportedOperationException(<span class="hljs-string">&quot;Use Token.renew instead&quot;</span>);
+  }
+
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> Counters <span class="hljs-title">getJobCounters</span><span class="hljs-params">(JobID arg0)</span> <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException </span>{
+    <span class="hljs-keyword">return</span> clientCache.getClient(arg0).getJobCounters(arg0);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getJobHistoryDir</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-keyword">return</span> JobHistoryUtils.getConfiguredHistoryServerDoneDirPrefix(conf);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> JobStatus <span class="hljs-title">getJobStatus</span><span class="hljs-params">(JobID jobID)</span> <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException </span>{
+    JobStatus status = clientCache.getClient(jobID).getJobStatus(jobID);
+    <span class="hljs-keyword">return</span> status;
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> TaskCompletionEvent[] getTaskCompletionEvents(JobID arg0, <span class="hljs-keyword">int</span> arg1,
+      <span class="hljs-keyword">int</span> arg2) <span class="hljs-keyword">throws</span> IOException, InterruptedException {
+    <span class="hljs-keyword">return</span> clientCache.getClient(arg0).getTaskCompletionEvents(arg0, arg1, arg2);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> String[] getTaskDiagnostics(TaskAttemptID arg0) <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException {
+    <span class="hljs-keyword">return</span> clientCache.getClient(arg0.getJobID()).getTaskDiagnostics(arg0);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-keyword">public</span> TaskReport[] getTaskReports(JobID jobID, TaskType taskType)
+  <span class="hljs-keyword">throws</span> IOException, InterruptedException {
+    <span class="hljs-keyword">return</span> clientCache.getClient(jobID)
+        .getTaskReports(jobID, taskType);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">killJob</span><span class="hljs-params">(JobID arg0)</span> <span class="hljs-keyword">throws</span> IOException, InterruptedException </span>{
+    <span class="hljs-comment">/* check if the status is not running, if not send kill to RM */</span>
+    JobStatus status = clientCache.getClient(arg0).getJobStatus(arg0);
+    <span class="hljs-keyword">if</span> (status.getState() != JobStatus.State.RUNNING) {
+      <span class="hljs-keyword">try</span> {
+        resMgrDelegate.killApplication(TypeConverter.toYarn(arg0).getAppId());
+      } <span class="hljs-keyword">catch</span> (YarnException e) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IOException(e);
+      }
+      <span class="hljs-keyword">return</span>;
+    }
+
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-comment">/* send a kill to the AM */</span>
+      clientCache.getClient(arg0).killJob(arg0);
+      <span class="hljs-keyword">long</span> currentTimeMillis = System.currentTimeMillis();
+      <span class="hljs-keyword">long</span> timeKillIssued = currentTimeMillis;
+      <span class="hljs-keyword">while</span> ((currentTimeMillis &lt; timeKillIssued + <span class="hljs-number">10000L</span>) &amp;&amp; (status.getState()
+          != JobStatus.State.KILLED)) {
+          <span class="hljs-keyword">try</span> {
+            Thread.sleep(<span class="hljs-number">1000L</span>);
+          } <span class="hljs-keyword">catch</span>(InterruptedException ie) {
+            <span class="hljs-comment">/** interrupted, just break */</span>
+            <span class="hljs-keyword">break</span>;
+          }
+          currentTimeMillis = System.currentTimeMillis();
+          status = clientCache.getClient(arg0).getJobStatus(arg0);
+      }
+    } <span class="hljs-keyword">catch</span>(IOException io) {
+      LOG.debug(<span class="hljs-string">&quot;Error when checking for application status&quot;</span>, io);
+    }
+    <span class="hljs-keyword">if</span> (status.getState() != JobStatus.State.KILLED) {
+      <span class="hljs-keyword">try</span> {
+        resMgrDelegate.killApplication(TypeConverter.toYarn(arg0).getAppId());
+      } <span class="hljs-keyword">catch</span> (YarnException e) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IOException(e);
+      }
+    }
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">killTask</span><span class="hljs-params">(TaskAttemptID arg0, <span class="hljs-keyword">boolean</span> arg1)</span> <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException </span>{
+    <span class="hljs-keyword">return</span> clientCache.getClient(arg0.getJobID()).killTask(arg0, arg1);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> AccessControlList <span class="hljs-title">getQueueAdmins</span><span class="hljs-params">(String arg0)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> AccessControlList(<span class="hljs-string">&quot;*&quot;</span>);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> JobTrackerStatus <span class="hljs-title">getJobTrackerStatus</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException,
+      InterruptedException </span>{
+    <span class="hljs-keyword">return</span> JobTrackerStatus.RUNNING;
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> ProtocolSignature <span class="hljs-title">getProtocolSignature</span><span class="hljs-params">(String protocol,
+      <span class="hljs-keyword">long</span> clientVersion, <span class="hljs-keyword">int</span> clientMethodsHash)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+    <span class="hljs-keyword">return</span> ProtocolSignature.getProtocolSignature(<span class="hljs-keyword">this</span>, protocol, clientVersion,
+        clientMethodsHash);
+  }
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> LogParams <span class="hljs-title">getLogFileParams</span><span class="hljs-params">(JobID jobID, TaskAttemptID taskAttemptID)</span>
+      <span class="hljs-keyword">throws</span> IOException </span>{
+    <span class="hljs-keyword">return</span> clientCache.getClient(jobID).getLogFilePath(jobID, taskAttemptID);
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">warnForJavaLibPath</span><span class="hljs-params">(String opts, String component,
+      String javaConf, String envConf)</span> </span>{
+    <span class="hljs-keyword">if</span> (opts != <span class="hljs-keyword">null</span> &amp;&amp; opts.contains(<span class="hljs-string">&quot;-Djava.library.path&quot;</span>)) {
+      LOG.warn(<span class="hljs-string">&quot;Usage of -Djava.library.path in &quot;</span> + javaConf + <span class="hljs-string">&quot; can cause &quot;</span> +
+               <span class="hljs-string">&quot;programs to no longer function if hadoop native libraries &quot;</span> +
+               <span class="hljs-string">&quot;are used. These values should be set as part of the &quot;</span> +
+               <span class="hljs-string">&quot;LD_LIBRARY_PATH in the &quot;</span> + component + <span class="hljs-string">&quot; JVM env using &quot;</span> +
+               envConf + <span class="hljs-string">&quot; config settings.&quot;</span>);
+    }
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">replaceEnvironment</span><span class="hljs-params">(Map&lt;String, String&gt; environment)</span> </span>{
+      String tmpClassPath = environment.get(<span class="hljs-string">&quot;CLASSPATH&quot;</span>);
+      tmpClassPath=tmpClassPath.replaceAll(<span class="hljs-string">&quot;;&quot;</span>, <span class="hljs-string">&quot;:&quot;</span>);
+      tmpClassPath=tmpClassPath.replaceAll(<span class="hljs-string">&quot;%PWD%&quot;</span>, <span class="hljs-string">&quot;\\$PWD&quot;</span>);
+      tmpClassPath=tmpClassPath.replaceAll(<span class="hljs-string">&quot;%HADOOP_MAPRED_HOME%&quot;</span>, <span class="hljs-string">&quot;\\$HADOOP_MAPRED_HOME&quot;</span>);
+      tmpClassPath= tmpClassPath.replaceAll(<span class="hljs-string">&quot;\\\\&quot;</span>, <span class="hljs-string">&quot;/&quot;</span> );
+      environment.put(<span class="hljs-string">&quot;CLASSPATH&quot;</span>,tmpClassPath);
+  }
+}
+</code></pre>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="NativeIO.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: NativeIO.java">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"YARNRunner.java","level":"2.1.1.3","depth":3,"next":{"title":"Spark","level":"2.1.2","depth":2,"ref":"","articles":[]},"previous":{"title":"NativeIO.java","level":"2.1.1.2","depth":3,"path":"BigData/Hadoop/MapReduce/NativeIO.md","ref":"BigData/Hadoop/MapReduce/NativeIO.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"BigData/Hadoop/MapReduce/YARNRunner.md","mtime":"2018-01-04T09:21:43.205Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-01-04T09:27:53.101Z"},"basePath":"../../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../../gitbook/gitbook.js"></script>
+    <script src="../../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

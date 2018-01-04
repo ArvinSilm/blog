@@ -1,0 +1,1174 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>NativeIO.java · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="YARNRunner.html" />
+    
+    
+    <link rel="prev" href="run_local.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../../">
+            
+                <a href="../../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+        
+        <li class="header">BigData</li>
+        
+        
+    
+        <li class="chapter " data-level="2.1" >
+            
+                <span>
+            
+                    
+                    Hadoop
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="2.1.1" >
+            
+                <span>
+            
+                    
+                    MapReduce
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="2.1.1.1" data-path="run_local.html">
+            
+                <a href="run_local.html">
+            
+                    
+                    Windows本地运行MapReduce
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="2.1.1.2" data-path="NativeIO.html">
+            
+                <a href="NativeIO.html">
+            
+                    
+                    NativeIO.java
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.1.1.3" data-path="YARNRunner.html">
+            
+                <a href="YARNRunner.html">
+            
+                    
+                    YARNRunner.java
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="2.1.2" >
+            
+                <span>
+            
+                    
+                    Spark
+            
+                </span>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../../.." >NativeIO.java</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <pre><code class="lang-java"><span class="hljs-comment">/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+    *
+ * http://www.apache.org/licenses/LICENSE-2.0
+    *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+    */</span>
+    <span class="hljs-keyword">package</span> org.apache.hadoop.io.nativeio;
+
+<span class="hljs-keyword">import</span> com.google.common.annotations.VisibleForTesting;
+
+<span class="hljs-keyword">import</span> org.apache.commons.logging.Log;
+<span class="hljs-keyword">import</span> org.apache.commons.logging.LogFactory;
+<span class="hljs-keyword">import</span> org.apache.hadoop.classification.InterfaceAudience;
+<span class="hljs-keyword">import</span> org.apache.hadoop.classification.InterfaceStability;
+<span class="hljs-keyword">import</span> org.apache.hadoop.conf.Configuration;
+<span class="hljs-keyword">import</span> org.apache.hadoop.fs.CommonConfigurationKeys;
+<span class="hljs-keyword">import</span> org.apache.hadoop.io.SecureIOUtils.AlreadyExistsException;
+<span class="hljs-keyword">import</span> org.apache.hadoop.util.NativeCodeLoader;
+<span class="hljs-keyword">import</span> org.apache.hadoop.util.Shell;
+
+<span class="hljs-keyword">import</span> sun.misc.Unsafe;
+
+<span class="hljs-keyword">import</span> java.io.File;
+<span class="hljs-keyword">import</span> java.io.FileDescriptor;
+<span class="hljs-keyword">import</span> java.io.FileInputStream;
+<span class="hljs-keyword">import</span> java.io.FileOutputStream;
+<span class="hljs-keyword">import</span> java.io.IOException;
+<span class="hljs-keyword">import</span> java.io.RandomAccessFile;
+<span class="hljs-keyword">import</span> java.lang.reflect.Field;
+<span class="hljs-keyword">import</span> java.nio.ByteBuffer;
+<span class="hljs-keyword">import</span> java.nio.MappedByteBuffer;
+<span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.concurrent.ConcurrentHashMap;
+
+<span class="hljs-comment">/**
+ * JNI wrappers for various native IO-related calls not available in Java.
+ * These functions should generally be used alongside a fallback to another
+ * more portable mechanism.
+    */</span>
+    <span class="hljs-meta">@InterfaceAudience</span>.Private
+    <span class="hljs-meta">@InterfaceStability</span>.Unstable
+    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NativeIO</span> </span>{
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">POSIX</span> </span>{
+    <span class="hljs-comment">// Flags for open() call from bits/fcntl.h</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_RDONLY   =    <span class="hljs-number">00</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_WRONLY   =    <span class="hljs-number">01</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_RDWR     =    <span class="hljs-number">02</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_CREAT    =  <span class="hljs-number">0100</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_EXCL     =  <span class="hljs-number">0200</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_NOCTTY   =  <span class="hljs-number">0400</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_TRUNC    = <span class="hljs-number">01000</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_APPEND   = <span class="hljs-number">02000</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_NONBLOCK = <span class="hljs-number">04000</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_SYNC   =  <span class="hljs-number">010000</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_ASYNC  =  <span class="hljs-number">020000</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> O_FSYNC = O_SYNC;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   O_NDELAY = O_NONBLOCK;
+
+    <span class="hljs-comment">// Flags for posix_fadvise() from bits/fcntl.h</span>
+    <span class="hljs-comment">/* No further special treatment.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> POSIX_FADV_NORMAL = <span class="hljs-number">0</span>;
+    <span class="hljs-comment">/* Expect random page references.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> POSIX_FADV_RANDOM = <span class="hljs-number">1</span>;
+    <span class="hljs-comment">/* Expect sequential page references.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> POSIX_FADV_SEQUENTIAL = <span class="hljs-number">2</span>;
+    <span class="hljs-comment">/* Will need these pages.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> POSIX_FADV_WILLNEED = <span class="hljs-number">3</span>;
+    <span class="hljs-comment">/* Don&apos;t need these pages.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> POSIX_FADV_DONTNEED = <span class="hljs-number">4</span>;
+    <span class="hljs-comment">/* Data will be accessed once.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> POSIX_FADV_NOREUSE = <span class="hljs-number">5</span>;
+
+
+    <span class="hljs-comment">/* Wait upon writeout of all pages
+       in the range before performing the
+       write.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> SYNC_FILE_RANGE_WAIT_BEFORE = <span class="hljs-number">1</span>;
+    <span class="hljs-comment">/* Initiate writeout of all those
+       dirty pages in the range which are
+       not presently under writeback.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> SYNC_FILE_RANGE_WRITE = <span class="hljs-number">2</span>;
+
+    <span class="hljs-comment">/* Wait upon writeout of all pages in
+       the range after performing the
+       write.  */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> SYNC_FILE_RANGE_WAIT_AFTER = <span class="hljs-number">4</span>;
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Log LOG = LogFactory.getLog(NativeIO.class);
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> nativeLoaded = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> fadvisePossible = <span class="hljs-keyword">true</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> syncFileRangePossible = <span class="hljs-keyword">true</span>;
+
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String WORKAROUND_NON_THREADSAFE_CALLS_KEY =
+      <span class="hljs-string">&quot;hadoop.workaround.non.threadsafe.getpwuid&quot;</span>;
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> WORKAROUND_NON_THREADSAFE_CALLS_DEFAULT = <span class="hljs-keyword">true</span>;
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">long</span> cacheTimeout = -<span class="hljs-number">1</span>;
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> CacheManipulator cacheManipulator = <span class="hljs-keyword">new</span> CacheManipulator();
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> CacheManipulator <span class="hljs-title">getCacheManipulator</span><span class="hljs-params">()</span> </span>{
+      <span class="hljs-keyword">return</span> cacheManipulator;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setCacheManipulator</span><span class="hljs-params">(CacheManipulator cacheManipulator)</span> </span>{
+      POSIX.cacheManipulator = cacheManipulator;
+    }
+
+    <span class="hljs-comment">/**
+     * Used to manipulate the operating system cache.
+     */</span>
+    <span class="hljs-meta">@VisibleForTesting</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CacheManipulator</span> </span>{
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">mlock</span><span class="hljs-params">(String identifier, ByteBuffer buffer,
+          <span class="hljs-keyword">long</span> len)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+        POSIX.mlock(buffer, len);
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getMemlockLimit</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> NativeIO.getMemlockLimit();
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getOperatingSystemPageSize</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> NativeIO.getOperatingSystemPageSize();
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">posixFadviseIfPossible</span><span class="hljs-params">(String identifier,
+        FileDescriptor fd, <span class="hljs-keyword">long</span> offset, <span class="hljs-keyword">long</span> len, <span class="hljs-keyword">int</span> flags)</span>
+            <span class="hljs-keyword">throws</span> NativeIOException </span>{
+        POSIX.posixFadviseIfPossible(identifier, fd, offset,
+            len, flags);
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">verifyCanMlock</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> NativeIO.isAvailable();
+      }
+    }
+
+    <span class="hljs-comment">/**
+     * A CacheManipulator used for testing which does not actually call mlock.
+     * This allows many tests to be run even when the operating system does not
+     * allow mlock, or only allows limited mlocking.
+     */</span>
+    <span class="hljs-meta">@VisibleForTesting</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NoMlockCacheManipulator</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">CacheManipulator</span> </span>{
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">mlock</span><span class="hljs-params">(String identifier, ByteBuffer buffer,
+          <span class="hljs-keyword">long</span> len)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+        LOG.info(<span class="hljs-string">&quot;mlocking &quot;</span> + identifier);
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getMemlockLimit</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-number">1125899906842624L</span>;
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getOperatingSystemPageSize</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-number">4096</span>;
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">verifyCanMlock</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+      }
+    }
+
+    <span class="hljs-keyword">static</span> {
+      <span class="hljs-keyword">if</span> (NativeCodeLoader.isNativeCodeLoaded()) {
+        <span class="hljs-keyword">try</span> {
+          Configuration conf = <span class="hljs-keyword">new</span> Configuration();
+          workaroundNonThreadSafePasswdCalls = conf.getBoolean(
+            WORKAROUND_NON_THREADSAFE_CALLS_KEY,
+            WORKAROUND_NON_THREADSAFE_CALLS_DEFAULT);
+
+          initNative();
+          nativeLoaded = <span class="hljs-keyword">true</span>;
+
+          cacheTimeout = conf.getLong(
+            CommonConfigurationKeys.HADOOP_SECURITY_UID_NAME_CACHE_TIMEOUT_KEY,
+            CommonConfigurationKeys.HADOOP_SECURITY_UID_NAME_CACHE_TIMEOUT_DEFAULT) *
+            <span class="hljs-number">1000</span>;
+          LOG.debug(<span class="hljs-string">&quot;Initialized cache for IDs to User/Group mapping with a &quot;</span> +
+            <span class="hljs-string">&quot; cache timeout of &quot;</span> + cacheTimeout/<span class="hljs-number">1000</span> + <span class="hljs-string">&quot; seconds.&quot;</span>);
+
+        } <span class="hljs-keyword">catch</span> (Throwable t) {
+          <span class="hljs-comment">// This can happen if the user has an older version of libhadoop.so</span>
+          <span class="hljs-comment">// installed - in this case we can continue without native IO</span>
+          <span class="hljs-comment">// after warning</span>
+          LOG.error(<span class="hljs-string">&quot;Unable to initialize NativeIO libraries&quot;</span>, t);
+        }
+      }
+    }
+
+    <span class="hljs-comment">/**
+     * Return true if the JNI-based native IO extensions are available.
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isAvailable</span><span class="hljs-params">()</span> </span>{
+      <span class="hljs-keyword">return</span> NativeCodeLoader.isNativeCodeLoaded() &amp;&amp; nativeLoaded;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">assertCodeLoaded</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException </span>{
+      <span class="hljs-keyword">if</span> (!isAvailable()) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IOException(<span class="hljs-string">&quot;NativeIO was not loaded&quot;</span>);
+      }
+    }
+
+    <span class="hljs-comment">/** Wrapper around open(2) */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> FileDescriptor <span class="hljs-title">open</span><span class="hljs-params">(String path, <span class="hljs-keyword">int</span> flags, <span class="hljs-keyword">int</span> mode)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+    <span class="hljs-comment">/** Wrapper around fstat(2) */</span>
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> Stat <span class="hljs-title">fstat</span><span class="hljs-params">(FileDescriptor fd)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+
+    <span class="hljs-comment">/** Native chmod implementation. On UNIX, it is a wrapper around chmod(2) */</span>
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">chmodImpl</span><span class="hljs-params">(String path, <span class="hljs-keyword">int</span> mode)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">chmod</span><span class="hljs-params">(String path, <span class="hljs-keyword">int</span> mode)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+      <span class="hljs-keyword">if</span> (!Shell.WINDOWS) {
+        chmodImpl(path, mode);
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">try</span> {
+          chmodImpl(path, mode);
+        } <span class="hljs-keyword">catch</span> (NativeIOException nioe) {
+          <span class="hljs-keyword">if</span> (nioe.getErrorCode() == <span class="hljs-number">3</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NativeIOException(<span class="hljs-string">&quot;No such file or directory&quot;</span>,
+                Errno.ENOENT);
+          } <span class="hljs-keyword">else</span> {
+            LOG.warn(String.format(<span class="hljs-string">&quot;NativeIO.chmod error (%d): %s&quot;</span>,
+                nioe.getErrorCode(), nioe.getMessage()));
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NativeIOException(<span class="hljs-string">&quot;Unknown error&quot;</span>, Errno.UNKNOWN);
+          }
+        }
+      }
+    }
+
+    <span class="hljs-comment">/** Wrapper around posix_fadvise(2) */</span>
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">posix_fadvise</span><span class="hljs-params">(
+      FileDescriptor fd, <span class="hljs-keyword">long</span> offset, <span class="hljs-keyword">long</span> len, <span class="hljs-keyword">int</span> flags)</span> <span class="hljs-keyword">throws</span> NativeIOException</span>;
+
+    <span class="hljs-comment">/** Wrapper around sync_file_range(2) */</span>
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sync_file_range</span><span class="hljs-params">(
+      FileDescriptor fd, <span class="hljs-keyword">long</span> offset, <span class="hljs-keyword">long</span> nbytes, <span class="hljs-keyword">int</span> flags)</span> <span class="hljs-keyword">throws</span> NativeIOException</span>;
+
+    <span class="hljs-comment">/**
+     * Call posix_fadvise on the given file descriptor. See the manpage
+     * for this syscall for more information. On systems where this
+     * call is not available, does nothing.
+     *
+     * <span class="hljs-doctag">@throws</span> NativeIOException if there is an error with the syscall
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">posixFadviseIfPossible</span><span class="hljs-params">(String identifier,
+        FileDescriptor fd, <span class="hljs-keyword">long</span> offset, <span class="hljs-keyword">long</span> len, <span class="hljs-keyword">int</span> flags)</span>
+        <span class="hljs-keyword">throws</span> NativeIOException </span>{
+      <span class="hljs-keyword">if</span> (nativeLoaded &amp;&amp; fadvisePossible) {
+        <span class="hljs-keyword">try</span> {
+          posix_fadvise(fd, offset, len, flags);
+        } <span class="hljs-keyword">catch</span> (UnsupportedOperationException uoe) {
+          fadvisePossible = <span class="hljs-keyword">false</span>;
+        } <span class="hljs-keyword">catch</span> (UnsatisfiedLinkError ule) {
+          fadvisePossible = <span class="hljs-keyword">false</span>;
+        }
+      }
+    }
+
+    <span class="hljs-comment">/**
+     * Call sync_file_range on the given file descriptor. See the manpage
+     * for this syscall for more information. On systems where this
+     * call is not available, does nothing.
+     *
+     * <span class="hljs-doctag">@throws</span> NativeIOException if there is an error with the syscall
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">syncFileRangeIfPossible</span><span class="hljs-params">(
+        FileDescriptor fd, <span class="hljs-keyword">long</span> offset, <span class="hljs-keyword">long</span> nbytes, <span class="hljs-keyword">int</span> flags)</span>
+        <span class="hljs-keyword">throws</span> NativeIOException </span>{
+      <span class="hljs-keyword">if</span> (nativeLoaded &amp;&amp; syncFileRangePossible) {
+        <span class="hljs-keyword">try</span> {
+          sync_file_range(fd, offset, nbytes, flags);
+        } <span class="hljs-keyword">catch</span> (UnsupportedOperationException uoe) {
+          syncFileRangePossible = <span class="hljs-keyword">false</span>;
+        } <span class="hljs-keyword">catch</span> (UnsatisfiedLinkError ule) {
+          syncFileRangePossible = <span class="hljs-keyword">false</span>;
+        }
+      }
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">mlock_native</span><span class="hljs-params">(
+        ByteBuffer buffer, <span class="hljs-keyword">long</span> len)</span> <span class="hljs-keyword">throws</span> NativeIOException</span>;
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">munlock_native</span><span class="hljs-params">(
+        ByteBuffer buffer, <span class="hljs-keyword">long</span> len)</span> <span class="hljs-keyword">throws</span> NativeIOException</span>;
+
+    <span class="hljs-comment">/**
+     * Locks the provided direct ByteBuffer into memory, preventing it from
+     * swapping out. After a buffer is locked, future accesses will not incur
+     * a page fault.
+     *
+     * See the mlock(2) man page for more information.
+     *
+     * <span class="hljs-doctag">@throws</span> NativeIOException
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">mlock</span><span class="hljs-params">(ByteBuffer buffer, <span class="hljs-keyword">long</span> len)</span>
+        <span class="hljs-keyword">throws</span> IOException </span>{
+      assertCodeLoaded();
+      <span class="hljs-keyword">if</span> (!buffer.isDirect()) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IOException(<span class="hljs-string">&quot;Cannot mlock a non-direct ByteBuffer&quot;</span>);
+      }
+      mlock_native(buffer, len);
+    }
+
+    <span class="hljs-comment">/**
+     * Unlocks a locked direct ByteBuffer, allowing it to swap out of memory.
+     * This is a no-op if the ByteBuffer was not previously locked.
+     *
+     * See the munlock(2) man page for more information.
+     *
+     * <span class="hljs-doctag">@throws</span> NativeIOException
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">munlock</span><span class="hljs-params">(ByteBuffer buffer, <span class="hljs-keyword">long</span> len)</span>
+        <span class="hljs-keyword">throws</span> IOException </span>{
+      assertCodeLoaded();
+      <span class="hljs-keyword">if</span> (!buffer.isDirect()) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IOException(<span class="hljs-string">&quot;Cannot munlock a non-direct ByteBuffer&quot;</span>);
+      }
+      munlock_native(buffer, len);
+    }
+
+    <span class="hljs-comment">/**
+     * Unmaps the block from memory. See munmap(2).
+     *
+     * There isn&apos;t any portable way to unmap a memory region in Java.
+     * So we use the sun.nio method here.
+     * Note that unmapping a memory region could cause crashes if code
+     * continues to reference the unmapped code.  However, if we don&apos;t
+     * manually unmap the memory, we are dependent on the finalizer to
+     * do it, and we have no idea when the finalizer will run.
+     *
+     * <span class="hljs-doctag">@param</span> buffer    The buffer to unmap.
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">munmap</span><span class="hljs-params">(MappedByteBuffer buffer)</span> </span>{
+      <span class="hljs-keyword">if</span> (buffer <span class="hljs-keyword">instanceof</span> sun.nio.ch.DirectBuffer) {
+        sun.misc.Cleaner cleaner =
+            ((sun.nio.ch.DirectBuffer)buffer).cleaner();
+        cleaner.clean();
+      }
+    }
+
+    <span class="hljs-comment">/** Linux only methods used for getOwner() implementation */</span>
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getUIDforFDOwnerforOwner</span><span class="hljs-params">(FileDescriptor fd)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> String <span class="hljs-title">getUserName</span><span class="hljs-params">(<span class="hljs-keyword">long</span> uid)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+
+    <span class="hljs-comment">/**
+     * Result type of the fstat call
+     */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Stat</span> </span>{
+      <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> ownerId, groupId;
+      <span class="hljs-keyword">private</span> String owner, group;
+      <span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> mode;
+
+      <span class="hljs-comment">// Mode constants</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> S_IFMT = <span class="hljs-number">0170000</span>;      <span class="hljs-comment">/* type of file */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   S_IFIFO  = <span class="hljs-number">0010000</span>;  <span class="hljs-comment">/* named pipe (fifo) */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   S_IFCHR  = <span class="hljs-number">0020000</span>;  <span class="hljs-comment">/* character special */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   S_IFDIR  = <span class="hljs-number">0040000</span>;  <span class="hljs-comment">/* directory */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   S_IFBLK  = <span class="hljs-number">0060000</span>;  <span class="hljs-comment">/* block special */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   S_IFREG  = <span class="hljs-number">0100000</span>;  <span class="hljs-comment">/* regular */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   S_IFLNK  = <span class="hljs-number">0120000</span>;  <span class="hljs-comment">/* symbolic link */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   S_IFSOCK = <span class="hljs-number">0140000</span>;  <span class="hljs-comment">/* socket */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span>   S_IFWHT  = <span class="hljs-number">0160000</span>;  <span class="hljs-comment">/* whiteout */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> S_ISUID = <span class="hljs-number">0004000</span>;  <span class="hljs-comment">/* set user id on execution */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> S_ISGID = <span class="hljs-number">0002000</span>;  <span class="hljs-comment">/* set group id on execution */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> S_ISVTX = <span class="hljs-number">0001000</span>;  <span class="hljs-comment">/* save swapped text even after use */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> S_IRUSR = <span class="hljs-number">0000400</span>;  <span class="hljs-comment">/* read permission, owner */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> S_IWUSR = <span class="hljs-number">0000200</span>;  <span class="hljs-comment">/* write permission, owner */</span>
+      <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> S_IXUSR = <span class="hljs-number">0000100</span>;  <span class="hljs-comment">/* execute/search permission, owner */</span>
+
+      Stat(<span class="hljs-keyword">int</span> ownerId, <span class="hljs-keyword">int</span> groupId, <span class="hljs-keyword">int</span> mode) {
+        <span class="hljs-keyword">this</span>.ownerId = ownerId;
+        <span class="hljs-keyword">this</span>.groupId = groupId;
+        <span class="hljs-keyword">this</span>.mode = mode;
+      }
+
+      Stat(String owner, String group, <span class="hljs-keyword">int</span> mode) {
+        <span class="hljs-keyword">if</span> (!Shell.WINDOWS) {
+          <span class="hljs-keyword">this</span>.owner = owner;
+        } <span class="hljs-keyword">else</span> {
+          <span class="hljs-keyword">this</span>.owner = stripDomain(owner);
+        }
+        <span class="hljs-keyword">if</span> (!Shell.WINDOWS) {
+          <span class="hljs-keyword">this</span>.group = group;
+        } <span class="hljs-keyword">else</span> {
+          <span class="hljs-keyword">this</span>.group = stripDomain(group);
+        }
+        <span class="hljs-keyword">this</span>.mode = mode;
+      }
+
+      <span class="hljs-meta">@Override</span>
+      <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">toString</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Stat(owner=&apos;&quot;</span> + owner + <span class="hljs-string">&quot;&apos;, group=&apos;&quot;</span> + group + <span class="hljs-string">&quot;&apos;&quot;</span> +
+          <span class="hljs-string">&quot;, mode=&quot;</span> + mode + <span class="hljs-string">&quot;)&quot;</span>;
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getOwner</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> owner;
+      }
+      <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getGroup</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> group;
+      }
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getMode</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> mode;
+      }
+    }
+
+    <span class="hljs-comment">/**
+     * Returns the file stat for a file descriptor.
+     *
+     * <span class="hljs-doctag">@param</span> fd file descriptor.
+     * <span class="hljs-doctag">@return</span> the file descriptor file stat.
+     * <span class="hljs-doctag">@throws</span> IOException thrown if there was an IO error while obtaining the file stat.
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Stat <span class="hljs-title">getFstat</span><span class="hljs-params">(FileDescriptor fd)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+      Stat stat = <span class="hljs-keyword">null</span>;
+      <span class="hljs-keyword">if</span> (!Shell.WINDOWS) {
+        stat = fstat(fd);
+        stat.owner = getName(IdCache.USER, stat.ownerId);
+        stat.group = getName(IdCache.GROUP, stat.groupId);
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">try</span> {
+          stat = fstat(fd);
+        } <span class="hljs-keyword">catch</span> (NativeIOException nioe) {
+          <span class="hljs-keyword">if</span> (nioe.getErrorCode() == <span class="hljs-number">6</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NativeIOException(<span class="hljs-string">&quot;The handle is invalid.&quot;</span>,
+                Errno.EBADF);
+          } <span class="hljs-keyword">else</span> {
+            LOG.warn(String.format(<span class="hljs-string">&quot;NativeIO.getFstat error (%d): %s&quot;</span>,
+                nioe.getErrorCode(), nioe.getMessage()));
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NativeIOException(<span class="hljs-string">&quot;Unknown error&quot;</span>, Errno.UNKNOWN);
+          }
+        }
+      }
+      <span class="hljs-keyword">return</span> stat;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">getName</span><span class="hljs-params">(IdCache domain, <span class="hljs-keyword">int</span> id)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+      Map&lt;Integer, CachedName&gt; idNameCache = (domain == IdCache.USER)
+        ? USER_ID_NAME_CACHE : GROUP_ID_NAME_CACHE;
+      String name;
+      CachedName cachedName = idNameCache.get(id);
+      <span class="hljs-keyword">long</span> now = System.currentTimeMillis();
+      <span class="hljs-keyword">if</span> (cachedName != <span class="hljs-keyword">null</span> &amp;&amp; (cachedName.timestamp + cacheTimeout) &gt; now) {
+        name = cachedName.name;
+      } <span class="hljs-keyword">else</span> {
+        name = (domain == IdCache.USER) ? getUserName(id) : getGroupName(id);
+        <span class="hljs-keyword">if</span> (LOG.isDebugEnabled()) {
+          String type = (domain == IdCache.USER) ? <span class="hljs-string">&quot;UserName&quot;</span> : <span class="hljs-string">&quot;GroupName&quot;</span>;
+          LOG.debug(<span class="hljs-string">&quot;Got &quot;</span> + type + <span class="hljs-string">&quot; &quot;</span> + name + <span class="hljs-string">&quot; for ID &quot;</span> + id +
+            <span class="hljs-string">&quot; from the native implementation&quot;</span>);
+        }
+        cachedName = <span class="hljs-keyword">new</span> CachedName(name, now);
+        idNameCache.put(id, cachedName);
+      }
+      <span class="hljs-keyword">return</span> name;
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> String <span class="hljs-title">getUserName</span><span class="hljs-params">(<span class="hljs-keyword">int</span> uid)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+    <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> String <span class="hljs-title">getGroupName</span><span class="hljs-params">(<span class="hljs-keyword">int</span> uid)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CachedName</span> </span>{
+      <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> timestamp;
+      <span class="hljs-keyword">final</span> String name;
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CachedName</span><span class="hljs-params">(String name, <span class="hljs-keyword">long</span> timestamp)</span> </span>{
+        <span class="hljs-keyword">this</span>.name = name;
+        <span class="hljs-keyword">this</span>.timestamp = timestamp;
+      }
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Map&lt;Integer, CachedName&gt; USER_ID_NAME_CACHE =
+      <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;Integer, CachedName&gt;();
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Map&lt;Integer, CachedName&gt; GROUP_ID_NAME_CACHE =
+      <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;Integer, CachedName&gt;();
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">enum</span> IdCache { USER, GROUP }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> MMAP_PROT_READ = <span class="hljs-number">0x1</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> MMAP_PROT_WRITE = <span class="hljs-number">0x2</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> MMAP_PROT_EXEC = <span class="hljs-number">0x4</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">long</span> <span class="hljs-title">mmap</span><span class="hljs-params">(FileDescriptor fd, <span class="hljs-keyword">int</span> prot,
+        <span class="hljs-keyword">boolean</span> shared, <span class="hljs-keyword">long</span> length)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">munmap</span><span class="hljs-params">(<span class="hljs-keyword">long</span> addr, <span class="hljs-keyword">long</span> length)</span>
+        <span class="hljs-keyword">throws</span> IOException</span>;
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> workaroundNonThreadSafePasswdCalls = <span class="hljs-keyword">false</span>;
+
+
+  <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Windows</span> </span>{
+    <span class="hljs-comment">// Flags for CreateFile() call on Windows</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> GENERIC_READ = <span class="hljs-number">0x80000000L</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> GENERIC_WRITE = <span class="hljs-number">0x40000000L</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> FILE_SHARE_READ = <span class="hljs-number">0x00000001L</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> FILE_SHARE_WRITE = <span class="hljs-number">0x00000002L</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> FILE_SHARE_DELETE = <span class="hljs-number">0x00000004L</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> CREATE_NEW = <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> CREATE_ALWAYS = <span class="hljs-number">2</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> OPEN_EXISTING = <span class="hljs-number">3</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> OPEN_ALWAYS = <span class="hljs-number">4</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> TRUNCATE_EXISTING = <span class="hljs-number">5</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> FILE_BEGIN = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> FILE_CURRENT = <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> FILE_END = <span class="hljs-number">2</span>;
+
+    <span class="hljs-comment">/** Wrapper around CreateFile() on Windows */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> FileDescriptor <span class="hljs-title">createFile</span><span class="hljs-params">(String path,
+        <span class="hljs-keyword">long</span> desiredAccess, <span class="hljs-keyword">long</span> shareMode, <span class="hljs-keyword">long</span> creationDisposition)</span>
+        <span class="hljs-keyword">throws</span> IOException</span>;
+
+    <span class="hljs-comment">/** Wrapper around SetFilePointer() on Windows */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">long</span> <span class="hljs-title">setFilePointer</span><span class="hljs-params">(FileDescriptor fd,
+        <span class="hljs-keyword">long</span> distanceToMove, <span class="hljs-keyword">long</span> moveMethod)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+
+    <span class="hljs-comment">/** Windows only methods used for getOwner() implementation */</span>
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> String <span class="hljs-title">getOwner</span><span class="hljs-params">(FileDescriptor fd)</span> <span class="hljs-keyword">throws</span> IOException</span>;
+
+    <span class="hljs-comment">/** Supported list of Windows access right flags */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">enum</span> AccessRight {
+      ACCESS_READ (<span class="hljs-number">0x0001</span>),      <span class="hljs-comment">// FILE_READ_DATA</span>
+      ACCESS_WRITE (<span class="hljs-number">0x0002</span>),     <span class="hljs-comment">// FILE_WRITE_DATA</span>
+      ACCESS_EXECUTE (<span class="hljs-number">0x0020</span>);   <span class="hljs-comment">// FILE_EXECUTE</span>
+
+      <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> accessRight;
+      AccessRight(<span class="hljs-keyword">int</span> access) {
+        accessRight = access;
+      }
+
+      <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">accessRight</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> accessRight;
+      }
+    };
+
+    <span class="hljs-comment">/** Windows only method used to check if the current process has requested
+     *  access rights on the given path. */</span>
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">access0</span><span class="hljs-params">(String path, <span class="hljs-keyword">int</span> requestedAccess)</span></span>;
+
+    <span class="hljs-comment">/**
+     * Checks whether the current process has desired access rights on
+     * the given path.
+     *
+     * Longer term this native function can be substituted with JDK7
+     * function Files#isReadable, isWritable, isExecutable.
+     *
+     * <span class="hljs-doctag">@param</span> path input path
+     * <span class="hljs-doctag">@param</span> desiredAccess ACCESS_READ, ACCESS_WRITE or ACCESS_EXECUTE
+     * <span class="hljs-doctag">@return</span> true if access is allowed
+     * <span class="hljs-doctag">@throws</span> IOException I/O exception on error
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">access</span><span class="hljs-params">(String path, AccessRight desiredAccess)</span>
+        <span class="hljs-keyword">throws</span> IOException </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+        <span class="hljs-comment">//return access0(path, desiredAccess.accessRight());</span>
+    }
+
+    <span class="hljs-keyword">static</span> {
+      <span class="hljs-keyword">if</span> (NativeCodeLoader.isNativeCodeLoaded()) {
+        <span class="hljs-keyword">try</span> {
+          initNative();
+          nativeLoaded = <span class="hljs-keyword">true</span>;
+        } <span class="hljs-keyword">catch</span> (Throwable t) {
+          <span class="hljs-comment">// This can happen if the user has an older version of libhadoop.so</span>
+          <span class="hljs-comment">// installed - in this case we can continue without native IO</span>
+          <span class="hljs-comment">// after warning</span>
+          LOG.error(<span class="hljs-string">&quot;Unable to initialize NativeIO libraries&quot;</span>, t);
+        }
+      }
+    }
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Log LOG = LogFactory.getLog(NativeIO.class);
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> nativeLoaded = <span class="hljs-keyword">false</span>;
+
+  <span class="hljs-keyword">static</span> {
+    <span class="hljs-keyword">if</span> (NativeCodeLoader.isNativeCodeLoaded()) {
+      <span class="hljs-keyword">try</span> {
+        initNative();
+        nativeLoaded = <span class="hljs-keyword">true</span>;
+      } <span class="hljs-keyword">catch</span> (Throwable t) {
+        <span class="hljs-comment">// This can happen if the user has an older version of libhadoop.so</span>
+        <span class="hljs-comment">// installed - in this case we can continue without native IO</span>
+        <span class="hljs-comment">// after warning</span>
+        LOG.error(<span class="hljs-string">&quot;Unable to initialize NativeIO libraries&quot;</span>, t);
+      }
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * Return true if the JNI-based native IO extensions are available.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isAvailable</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> NativeCodeLoader.isNativeCodeLoaded() &amp;&amp; nativeLoaded;
+  }
+
+  <span class="hljs-comment">/** Initialize the JNI method ID and class ID cache */</span>
+  <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initNative</span><span class="hljs-params">()</span></span>;
+
+  <span class="hljs-comment">/**
+   * Get the maximum number of bytes that can be locked into memory at any
+   * given point.
+        *
+   * <span class="hljs-doctag">@return</span> 0 if no bytes can be locked into memory;
+   * Long.MAX_VALUE if there is no limit;
+   * The number of bytes that can be locked into memory otherwise.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getMemlockLimit</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">return</span> isAvailable() ? getMemlockLimit0() : <span class="hljs-number">0</span>;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getMemlockLimit0</span><span class="hljs-params">()</span></span>;
+
+  <span class="hljs-comment">/**
+   * <span class="hljs-doctag">@return</span> the operating system&apos;s page size.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">long</span> <span class="hljs-title">getOperatingSystemPageSize</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">try</span> {
+      Field f = Unsafe.class.getDeclaredField(<span class="hljs-string">&quot;theUnsafe&quot;</span>);
+      f.setAccessible(<span class="hljs-keyword">true</span>);
+      Unsafe unsafe = (Unsafe)f.get(<span class="hljs-keyword">null</span>);
+      <span class="hljs-keyword">return</span> unsafe.pageSize();
+    } <span class="hljs-keyword">catch</span> (Throwable e) {
+      LOG.warn(<span class="hljs-string">&quot;Unable to get operating system page size.  Guessing 4096.&quot;</span>, e);
+      <span class="hljs-keyword">return</span> <span class="hljs-number">4096</span>;
+    }
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CachedUid</span> </span>{
+    <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> timestamp;
+    <span class="hljs-keyword">final</span> String username;
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CachedUid</span><span class="hljs-params">(String username, <span class="hljs-keyword">long</span> timestamp)</span> </span>{
+      <span class="hljs-keyword">this</span>.timestamp = timestamp;
+      <span class="hljs-keyword">this</span>.username = username;
+    }
+  }
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Map&lt;Long, CachedUid&gt; uidCache =
+      <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;Long, CachedUid&gt;();
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">long</span> cacheTimeout;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> initialized = <span class="hljs-keyword">false</span>;
+
+  <span class="hljs-comment">/**
+   * The Windows logon name has two part, NetBIOS domain name and
+   * user account name, of the format DOMAIN\UserName. This method
+   * will remove the domain part of the full logon name.
+        *
+   * <span class="hljs-doctag">@param</span> the full principal name containing the domain
+   * <span class="hljs-doctag">@return</span> name with domain removed
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">stripDomain</span><span class="hljs-params">(String name)</span> </span>{
+    <span class="hljs-keyword">int</span> i = name.indexOf(<span class="hljs-string">&apos;\\&apos;</span>);
+    <span class="hljs-keyword">if</span> (i != -<span class="hljs-number">1</span>)
+      name = name.substring(i + <span class="hljs-number">1</span>);
+    <span class="hljs-keyword">return</span> name;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">getOwner</span><span class="hljs-params">(FileDescriptor fd)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+    ensureInitialized();
+    <span class="hljs-keyword">if</span> (Shell.WINDOWS) {
+      String owner = Windows.getOwner(fd);
+      owner = stripDomain(owner);
+      <span class="hljs-keyword">return</span> owner;
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">long</span> uid = POSIX.getUIDforFDOwnerforOwner(fd);
+      CachedUid cUid = uidCache.get(uid);
+      <span class="hljs-keyword">long</span> now = System.currentTimeMillis();
+      <span class="hljs-keyword">if</span> (cUid != <span class="hljs-keyword">null</span> &amp;&amp; (cUid.timestamp + cacheTimeout) &gt; now) {
+        <span class="hljs-keyword">return</span> cUid.username;
+      }
+      String user = POSIX.getUserName(uid);
+      LOG.info(<span class="hljs-string">&quot;Got UserName &quot;</span> + user + <span class="hljs-string">&quot; for UID &quot;</span> + uid
+          + <span class="hljs-string">&quot; from the native implementation&quot;</span>);
+      cUid = <span class="hljs-keyword">new</span> CachedUid(user, now);
+      uidCache.put(uid, cUid);
+      <span class="hljs-keyword">return</span> user;
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * Create a FileInputStream that shares delete permission on the
+   * file opened, i.e. other process can delete the file the
+   * FileInputStream is reading. Only Windows implementation uses
+   * the native interface.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> FileInputStream <span class="hljs-title">getShareDeleteFileInputStream</span><span class="hljs-params">(File f)</span>
+      <span class="hljs-keyword">throws</span> IOException </span>{
+    <span class="hljs-keyword">if</span> (!Shell.WINDOWS) {
+      <span class="hljs-comment">// On Linux the default FileInputStream shares delete permission</span>
+      <span class="hljs-comment">// on the file opened.</span>
+      <span class="hljs-comment">//</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FileInputStream(f);
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-comment">// Use Windows native interface to create a FileInputStream that</span>
+      <span class="hljs-comment">// shares delete permission on the file opened.</span>
+      <span class="hljs-comment">//</span>
+      FileDescriptor fd = Windows.createFile(
+          f.getAbsolutePath(),
+          Windows.GENERIC_READ,
+          Windows.FILE_SHARE_READ |
+              Windows.FILE_SHARE_WRITE |
+              Windows.FILE_SHARE_DELETE,
+          Windows.OPEN_EXISTING);
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FileInputStream(fd);
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * Create a FileInputStream that shares delete permission on the
+   * file opened at a given offset, i.e. other process can delete
+   * the file the FileInputStream is reading. Only Windows implementation
+   * uses the native interface.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> FileInputStream <span class="hljs-title">getShareDeleteFileInputStream</span><span class="hljs-params">(File f, <span class="hljs-keyword">long</span> seekOffset)</span>
+      <span class="hljs-keyword">throws</span> IOException </span>{
+    <span class="hljs-keyword">if</span> (!Shell.WINDOWS) {
+      RandomAccessFile rf = <span class="hljs-keyword">new</span> RandomAccessFile(f, <span class="hljs-string">&quot;r&quot;</span>);
+      <span class="hljs-keyword">if</span> (seekOffset &gt; <span class="hljs-number">0</span>) {
+        rf.seek(seekOffset);
+      }
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FileInputStream(rf.getFD());
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-comment">// Use Windows native interface to create a FileInputStream that</span>
+      <span class="hljs-comment">// shares delete permission on the file opened, and set it to the</span>
+      <span class="hljs-comment">// given offset.</span>
+      <span class="hljs-comment">//</span>
+      FileDescriptor fd = Windows.createFile(
+          f.getAbsolutePath(),
+          Windows.GENERIC_READ,
+          Windows.FILE_SHARE_READ |
+              Windows.FILE_SHARE_WRITE |
+              Windows.FILE_SHARE_DELETE,
+          Windows.OPEN_EXISTING);
+      <span class="hljs-keyword">if</span> (seekOffset &gt; <span class="hljs-number">0</span>)
+        Windows.setFilePointer(fd, seekOffset, Windows.FILE_BEGIN);
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FileInputStream(fd);
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * Create the specified File for write access, ensuring that it does not exist.
+   * <span class="hljs-doctag">@param</span> f the file that we want to create
+   * <span class="hljs-doctag">@param</span> permissions we want to have on the file (if security is enabled)
+        *
+   * <span class="hljs-doctag">@throws</span> AlreadyExistsException if the file already exists
+   * <span class="hljs-doctag">@throws</span> IOException if any other error occurred
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> FileOutputStream <span class="hljs-title">getCreateForWriteFileOutputStream</span><span class="hljs-params">(File f, <span class="hljs-keyword">int</span> permissions)</span>
+      <span class="hljs-keyword">throws</span> IOException </span>{
+    <span class="hljs-keyword">if</span> (!Shell.WINDOWS) {
+      <span class="hljs-comment">// Use the native wrapper around open(2)</span>
+      <span class="hljs-keyword">try</span> {
+        FileDescriptor fd = POSIX.open(f.getAbsolutePath(),
+            POSIX.O_WRONLY | POSIX.O_CREAT
+                | POSIX.O_EXCL, permissions);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FileOutputStream(fd);
+      } <span class="hljs-keyword">catch</span> (NativeIOException nioe) {
+        <span class="hljs-keyword">if</span> (nioe.getErrno() == Errno.EEXIST) {
+          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> AlreadyExistsException(nioe);
+        }
+        <span class="hljs-keyword">throw</span> nioe;
+      }
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-comment">// Use the Windows native APIs to create equivalent FileOutputStream</span>
+      <span class="hljs-keyword">try</span> {
+        FileDescriptor fd = Windows.createFile(f.getCanonicalPath(),
+            Windows.GENERIC_WRITE,
+            Windows.FILE_SHARE_DELETE
+                | Windows.FILE_SHARE_READ
+                | Windows.FILE_SHARE_WRITE,
+            Windows.CREATE_NEW);
+        POSIX.chmod(f.getCanonicalPath(), permissions);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FileOutputStream(fd);
+      } <span class="hljs-keyword">catch</span> (NativeIOException nioe) {
+        <span class="hljs-keyword">if</span> (nioe.getErrorCode() == <span class="hljs-number">80</span>) {
+          <span class="hljs-comment">// ERROR_FILE_EXISTS</span>
+          <span class="hljs-comment">// 80 (0x50)</span>
+          <span class="hljs-comment">// The file exists</span>
+          <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> AlreadyExistsException(nioe);
+        }
+        <span class="hljs-keyword">throw</span> nioe;
+      }
+    }
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ensureInitialized</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">if</span> (!initialized) {
+      cacheTimeout =
+          <span class="hljs-keyword">new</span> Configuration().getLong(<span class="hljs-string">&quot;hadoop.security.uid.cache.secs&quot;</span>,
+              <span class="hljs-number">4</span>*<span class="hljs-number">60</span>*<span class="hljs-number">60</span>) * <span class="hljs-number">1000</span>;
+      LOG.info(<span class="hljs-string">&quot;Initialized cache for UID to User mapping with a cache&quot;</span> +
+          <span class="hljs-string">&quot; timeout of &quot;</span> + cacheTimeout/<span class="hljs-number">1000</span> + <span class="hljs-string">&quot; seconds.&quot;</span>);
+      initialized = <span class="hljs-keyword">true</span>;
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * A version of renameTo that throws a descriptive exception when it fails.
+        *
+   * <span class="hljs-doctag">@param</span> src                  The source path
+   * <span class="hljs-doctag">@param</span> dst                  The destination path
+        *
+   * <span class="hljs-doctag">@throws</span> NativeIOException   On failure.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">renameTo</span><span class="hljs-params">(File src, File dst)</span>
+      <span class="hljs-keyword">throws</span> IOException </span>{
+    <span class="hljs-keyword">if</span> (!nativeLoaded) {
+      <span class="hljs-keyword">if</span> (!src.renameTo(dst)) {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IOException(<span class="hljs-string">&quot;renameTo(src=&quot;</span> + src + <span class="hljs-string">&quot;, dst=&quot;</span> +
+          dst + <span class="hljs-string">&quot;) failed.&quot;</span>);
+      }
+    } <span class="hljs-keyword">else</span> {
+      renameTo0(src.getAbsolutePath(), dst.getAbsolutePath());
+    }
+  }
+
+  <span class="hljs-comment">/**
+   * A version of renameTo that throws a descriptive exception when it fails.
+        *
+   * <span class="hljs-doctag">@param</span> src                  The source path
+   * <span class="hljs-doctag">@param</span> dst                  The destination path
+        *
+   * <span class="hljs-doctag">@throws</span> NativeIOException   On failure.
+        */</span>
+          <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">native</span> <span class="hljs-keyword">void</span> <span class="hljs-title">renameTo0</span><span class="hljs-params">(String src, String dst)</span>
+      <span class="hljs-keyword">throws</span> NativeIOException</span>;
+}
+</code></pre>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="run_local.html" class="navigation navigation-prev " aria-label="Previous page: Windows本地运行MapReduce">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="YARNRunner.html" class="navigation navigation-next " aria-label="Next page: YARNRunner.java">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"NativeIO.java","level":"2.1.1.2","depth":3,"next":{"title":"YARNRunner.java","level":"2.1.1.3","depth":3,"path":"BigData/Hadoop/MapReduce/YARNRunner.md","ref":"BigData/Hadoop/MapReduce/YARNRunner.md","articles":[]},"previous":{"title":"Windows本地运行MapReduce","level":"2.1.1.1","depth":3,"path":"BigData/Hadoop/MapReduce/run_local.md","ref":"BigData/Hadoop/MapReduce/run_local.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"BigData/Hadoop/MapReduce/NativeIO.md","mtime":"2018-01-04T09:21:44.509Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-01-04T09:27:53.101Z"},"basePath":"../../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../../gitbook/gitbook.js"></script>
+    <script src="../../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
