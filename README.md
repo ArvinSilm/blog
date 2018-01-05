@@ -1,2 +1,2 @@
-# blog
-搭建在GitBook的Blog
+# Blog
+笔记，偶尔的杂七杂八
